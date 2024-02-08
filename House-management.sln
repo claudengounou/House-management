@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "House-management-Api", "House-management-Api\House-management-Api.csproj", "{5F661004-AC4F-43A0-9D38-E06DF5BC1366}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F661004-AC4F-43A0-9D38-E06DF5BC1366}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F661004-AC4F-43A0-9D38-E06DF5BC1366}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F661004-AC4F-43A0-9D38-E06DF5BC1366}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F661004-AC4F-43A0-9D38-E06DF5BC1366}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A63E944-626E-4B15-8231-58673B4441C2}
+	EndGlobalSection
+EndGlobal
