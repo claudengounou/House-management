@@ -11,5 +11,7 @@ namespace House_management_Api.Models
         [Required]
         public string LastName { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.Now;
+
+        public string ImageUrl { get; set; }
     }
 }

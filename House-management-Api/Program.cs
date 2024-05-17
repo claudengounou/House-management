@@ -3,12 +3,15 @@ using House_management_Api.Models;
 using House_management_Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using System.Linq;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,8 +29,9 @@ builder.Services.AddDbContext<Context_identity>(options =>
 } );
 
 
-//be able to inject JWTService iniside our controller
+//be able to inject Service iniside our controller
 builder.Services.AddScoped<JWTService>();
+builder.Services.AddScoped<EmailService>();
 
 //Defining our identityCore service
 builder.Services.AddIdentityCore<User>(options =>
@@ -70,7 +74,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddCors();
+
+//permet de renvoyer les erreurs de validation des champs sous forme de tableau
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = actionContext =>
+    {
+        var errors = actionContext.ModelState
+            .Where(x => x.Value.Errors.Count() > 0)
+            .SelectMany(x => x.Value.Errors)
+            .Select(x => x.ErrorMessage).ToArray();
+
+        var toReturn = new
+        {
+            errors = errors
+        };
+
+        return new BadRequestObjectResult (toReturn);
+    };
+});
+
 var app = builder.Build();
+
+app.UseCors(opt =>
+{
+    opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(builder.Configuration["JWT:ClientUrl"]);
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

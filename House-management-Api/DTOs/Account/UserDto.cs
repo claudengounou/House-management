@@ -8,5 +8,6 @@ namespace House_management_Api.DTOs.Account
         [Required]
         public string LastName { get; set; }
         public string  JWT { get; set; }
+        public string ImageUrl { get; set; }
     }
 }
