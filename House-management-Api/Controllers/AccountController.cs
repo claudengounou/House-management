@@ -44,7 +44,7 @@ namespace House_management_Api.Controllers
         public async Task<ActionResult<UserDto>> RefreshUserToken()
         {
             var user = await _userManager.FindByNameAsync(User.FindFirst(ClaimTypes.Email)?.Value);
-            return CreateApplicationUserDto(user);
+            return await CreateApplicationUserDto(user);
         }
         
 
@@ -71,14 +71,40 @@ namespace House_management_Api.Controllers
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
-            if (!result.Succeeded)
+            if(result.IsLockedOut)
             {
-                response = new() { Message = "Nom d'utilisateur ou mot de passe erroné!" };
+                response = new() { Message = string.Format("Votre compte a été bloqué. Prière de réessayer après le {0} UTC", user.LockoutEnd) };
                 return Unauthorized(new JsonResult(response));
             }
 
+            if (!result.Succeeded)
+            {
+                //user has input invalid password
+                response = new() { Message = "Nom d'utilisateur ou mot de passe erroné!" };
 
-            return CreateApplicationUserDto(user);
+                if(!user.UserName.Equals(SD.AdminUserName))
+                {
+                    //Incrementing accessFailedCount of the AspnetUser by 1
+                    await _userManager.AccessFailedAsync(user);
+                }
+
+                if(user.AccessFailedCount >= SD.MaximumLoginAttempts)
+                {
+                    await _userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddDays(1));
+                    response = new() { Message = string.Format("Votre compte a été bloqué. Prière de réessayer après le {0} UTC", user.LockoutEnd) };
+                    return Unauthorized(new JsonResult(response));
+                }
+
+                return Unauthorized(new JsonResult(response));
+            }
+
+            if(user.AccessFailedCount > 0)
+            {
+                await _userManager.ResetAccessFailedCountAsync(user);
+                await _userManager.SetLockoutEndDateAsync(user, null);
+            }
+            
+            return await CreateApplicationUserDto(user);
         }
 
 
@@ -147,10 +173,14 @@ namespace House_management_Api.Controllers
             };
 
             var result = await _userManager.CreateAsync(userToAdd, model.Password);
+            
             if(!result.Succeeded)
             {
                 return BadRequest(result.Errors);
             }
+
+            //add default role to user
+            await _userManager.AddToRoleAsync(userToAdd, SD.RentRole);
 
             try
             {
@@ -412,7 +442,7 @@ namespace House_management_Api.Controllers
                 {
                     response = new()
                     {
-                        Title = "Mot de passe réinitialisé",
+                        Title = "Réinitialisation mot de passe",
                         Message = "Votre mot de passe a été réinitialisé"
                     };
 
@@ -455,13 +485,13 @@ namespace House_management_Api.Controllers
 
 
         #region Private helpers methods
-        private UserDto CreateApplicationUserDto(User user)
+        private async Task<UserDto> CreateApplicationUserDto(User user)
         {
             return new UserDto
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                JWT = _jwtService.CreateJWT(user),
+                JWT = await _jwtService.CreateJWT(user),
                 ImageUrl = user.ImageUrl
             };
 

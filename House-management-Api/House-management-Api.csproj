@@ -5,6 +5,7 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <RootNamespace>House_management_Api</RootNamespace>
+    <UserSecretsId>af493cbf-35b7-4395-be71-d28661334047</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

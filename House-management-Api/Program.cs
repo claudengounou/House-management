@@ -10,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Linq;
 using System.Text;
 
@@ -32,6 +34,7 @@ builder.Services.AddDbContext<Context_identity>(options =>
 //be able to inject Service iniside our controller
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<ContextSeedService>();
 
 //Defining our identityCore service
 builder.Services.AddIdentityCore<User>(options =>
@@ -117,5 +120,21 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+#region
+using var scope = app.Services.CreateScope();
+try
+{
+    var contextSeedService = scope.ServiceProvider.GetService<ContextSeedService>();
+    await contextSeedService .InitializeContextAsync();
+}
+catch(Exception ex)
+{
+    var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+    logger.LogError(ex.Message, "Failed to initialize and seed the database");
+
+}
+
+#endregion
 
 app.Run();
